@@ -6,21 +6,22 @@ var bcrypt = require('bcryptjs');
 
 var app = express();
 var mdAutenticacion = require('../middlewares/autenticacion');
-var Usuario = require('../models/usuario');
+var Hospital = require('../models/hospital');
 
 /* 
 
-    Obtener todos los usuarios
+    Obtener todos los hospitales
 
 */
 app.get('/', (req, res, next) => {
     var desde = req.query.desde || 0;
     desde = Number(desde);
 
-    Usuario.find({}, 'nombre correo img role')
+    Hospital.find({})
         .skip(desde)
         .limit(5)
-        .exec((err, usuario) => {
+        .populate('usuario', 'nombre correo role')
+        .exec((err, hospital) => {
             if (err) {
                 return res.status(500).send({
                     ok: false,
@@ -28,7 +29,7 @@ app.get('/', (req, res, next) => {
                     errors: err
                 });
             }
-            Usuario.count({}, (err, conteo) => {
+            Hospital.count({}, (err, conteo) => {
                 if (err || conteo === undefined || conteo === null) {
                     return res.status(500).send({
                         ok: false,
@@ -38,10 +39,9 @@ app.get('/', (req, res, next) => {
                 }
                 return res.status(200).send({
                     ok: true,
-                    usuario: usuario,
+                    hospital: hospital,
                     total: conteo
                 });
-
             });
         });
 
@@ -49,7 +49,7 @@ app.get('/', (req, res, next) => {
 
 /* 
  
-    Actualizar un usuario
+    Actualizar un hospital
 
 */
 app.put('/:id', mdAutenticacion.verificaToken, (req, res) => {
@@ -57,39 +57,38 @@ app.put('/:id', mdAutenticacion.verificaToken, (req, res) => {
     var body = req.body;
 
 
-    Usuario.findById(id, (err, usuario) => {
+    Hospital.findById(id, (err, hospital) => {
         if (err) {
             return res.status(500).send({
                 ok: false,
-                mensaje: 'Error al buscar el usuario',
+                mensaje: 'Error al buscar el hospital',
                 errors: err
             });
         }
-        if (!usuario) {
+        if (!hospital) {
             return res.status(400).send({
                 ok: false,
-                mensaje: 'El usuario con el id ' + id + ' no existe.',
-                errors: { message: "No existe un usuario con dicho Id en la DB" }
+                mensaje: 'El hospital con el id ' + id + ', no existe.',
+                errors: { message: "No existe un hospital con dicho Id en la DB" }
             });
         }
 
-        usuario.nombre = body.nombre;
-        usuario.correo = body.correo;
-        usuario.role = body.role;
+        hospital.nombre = body.nombre;
+        hospital.usuario = req.usuario;
 
-        usuario.save((err, usuarioGrabado) => {
+        hospital.save((err, hospitalGrabado) => {
             if (err) {
                 return res.status(400).send({
                     ok: false,
-                    mensaje: 'Error al actualizar el usuario',
+                    mensaje: 'Error al actualizar el hospital',
                     errors: err
                 });
             }
-            usuarioGrabado.clave = ';-)';
+
             return res.status(200).send({
                 ok: true,
-                usuario: usuarioGrabado,
-                usuarioToken: req.usuario
+                hospital: hospitalGrabado,
+                Usuario_Habilitante: req.usuario
             });
         })
     })
@@ -97,35 +96,31 @@ app.put('/:id', mdAutenticacion.verificaToken, (req, res) => {
 
 /* 
  
-    Crear un usuario
+    Crear un hospital
 
 */
 app.post('/', mdAutenticacion.verificaToken, (req, res) => {
-    /* var salt = bcrypt.genSaltSync(10);
-    var hash = bcrypt.hashSync("B4c0/\/", salt); */
-    console.log(req);
+    /* console.log(req); */
     var body = req.body;
-    var usuario = new Usuario({
+    var hospital = new Hospital({
         nombre: body.nombre,
-        correo: body.correo,
-        clave: bcrypt.hashSync(body.clave, 10),
         img: body.img,
-        role: body.role
+        usuario: req.usuario
     });
 
-    usuario.save((err, usuarioGrabado) => {
-        if (err) {
+    hospital.save((err, hospitalGrabado) => {
+        if (err || !hospitalGrabado) {
             return res.status(400).send({
                 ok: false,
-                mensaje: 'Error al crear el usuario',
+                mensaje: 'Error al crear el hospital',
                 errors: err
             });
         }
-        usuarioGrabado.clave = ';-)';
+
         return res.status(201).send({
             ok: true,
-            usuario: usuario,
-            usuarioToken: req.usuario
+            hospital: hospital,
+            Usuario_Habilitante: req.usuario
         })
     })
 
@@ -133,32 +128,32 @@ app.post('/', mdAutenticacion.verificaToken, (req, res) => {
 
 /* 
  
-    Borrar un usuario
+    Borrar un hospital
 
 */
 app.delete('/:id', mdAutenticacion.verificaToken, (req, res) => {
     var id = req.params.id;
 
-    Usuario.findByIdAndDelete(id, (err, usuarioBorrado) => {
+    Hospital.findByIdAndDelete(id, (err, hospitalBorrado) => {
         if (err) {
             return res.status(500).send({
                 ok: false,
-                mensaje: 'Error al borrar el usuario',
+                mensaje: 'Error al borrar el hospital',
                 errors: { message: 'Fallo en el acceso a la DB.' }
             });
         }
-        if (!usuarioBorrado) {
+        if (!hospitalBorrado) {
             return res.status(500).send({
                 ok: false,
-                mensaje: 'Error al borrar el usuario',
-                errors: { message: 'No existe un usuario con ese id' }
+                mensaje: 'Error al borrar el hospital',
+                errors: { message: 'No existe un hospital con ese id' }
             });
         }
-        usuarioBorrado.clave = ';-)';
+
         return res.status(200).send({
             ok: true,
-            usuario_borrado: usuarioBorrado,
-            usuarioToken: req.usuario
+            hospital_borrado: hospitalBorrado,
+            Usuario_Habilitante: req.usuario
         });
     });
 });
