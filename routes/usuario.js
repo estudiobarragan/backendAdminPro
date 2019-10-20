@@ -17,7 +17,7 @@ app.get('/', (req, res, next) => {
     var desde = req.query.desde || 0;
     desde = Number(desde);
 
-    Usuario.find({}, 'nombre correo img role')
+    Usuario.find({}, 'nombre correo img role google')
         .skip(desde)
         .limit(5)
         .exec((err, usuario) => {
@@ -89,7 +89,7 @@ app.put('/:id', mdAutenticacion.verificaToken, (req, res) => {
             return res.status(200).send({
                 ok: true,
                 usuario: usuarioGrabado,
-                usuarioToken: req.usuario
+                usuario_actualizante: req.usuario
             });
         })
     })
@@ -98,12 +98,16 @@ app.put('/:id', mdAutenticacion.verificaToken, (req, res) => {
 /* 
  
     Crear un usuario
+    quito , mdAutenticacion.verificaToken con lo cual habilito el registro abierto
+
+    TODO agregar un campo habilitado que habilita las cuentas y hasta que no este asi indicado,
+    no pueden comenzar a trabajar.
 
 */
-app.post('/', mdAutenticacion.verificaToken, (req, res) => {
+app.post('/', (req, res) => {
     /* var salt = bcrypt.genSaltSync(10);
     var hash = bcrypt.hashSync("B4c0/\/", salt); */
-    console.log(req);
+
     var body = req.body;
     var usuario = new Usuario({
         nombre: body.nombre,
