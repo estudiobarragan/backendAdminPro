@@ -26,3 +26,44 @@ exports.verificaToken = function(req, res, next) {
         next();
     });
 }
+
+/* 
+ 
+    Verificar ADMIN
+
+*/
+exports.verificaADMIN_ROLE = function(req, res, next) {
+    var usuario = req.usuario;
+
+    if (usuario.role === 'ADMIN_ROLE') {
+        next();
+        return;
+    } else {
+        return res.status(401).send({
+            ok: false,
+            mensaje: 'Token incorrecto - AR',
+            error: { message: "Avise al administrador." }
+        });
+    }
+}
+
+/* 
+ 
+    Verificar ADMIN o Mismo Usuario
+
+*/
+exports.verificaAdminSef = function(req, res, next) {
+    var usuario = req.usuario;
+    var id = req.params.id;
+
+    if (usuario.role === 'ADMIN_ROLE' || usuario._id === id) {
+        next();
+        return;
+    } else {
+        return res.status(401).send({
+            ok: false,
+            mensaje: 'Token incorrecto - AR-Self',
+            error: { message: "Avise al administrador." }
+        });
+    }
+}

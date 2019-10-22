@@ -6,6 +6,7 @@ var Hospital = require('../models/hospital');
 var Medico = require('../models/medico');
 var Usuario = require('../models/usuario');
 
+
 /* 
     Busqueda por coleccion
 */
@@ -69,7 +70,7 @@ app.get('/todo/:busqueda', (req, res, next) => {
 function buscarHospitales(busqueda, regex) {
     return new Promise((resolve, reject) => {
         Hospital.find({ nombre: regex })
-            .populate('usuario', 'nombre email')
+            .populate('usuario', 'nombre correo img')
             .exec((err, hospitales) => {
                 if (err) {
                     reject('Error al buscar hospitales: ', err);
@@ -83,7 +84,7 @@ function buscarHospitales(busqueda, regex) {
 function buscarMedicos(busqueda, regex) {
     return new Promise((resolve, reject) => {
         Medico.find({ nombre: regex })
-            .populate('usuario', 'nombre email')
+            .populate('usuario', 'nombre correo img')
             .populate('hospital')
             .exec((err, medicos) => {
                 if (err) {
@@ -97,7 +98,7 @@ function buscarMedicos(busqueda, regex) {
 
 function buscarUsuarios(busqueda, regex) {
     return new Promise((resolve, reject) => {
-        Usuario.find({}, 'nombre correo rol')
+        Usuario.find({}, 'nombre correo rol img')
             .or([{ 'nombre': regex }, { 'correo': regex }])
             .exec((err, usuarios) => {
                 if (err) {
