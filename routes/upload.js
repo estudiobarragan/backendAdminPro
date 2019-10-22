@@ -110,8 +110,8 @@ function subirPorTipo(tipo, id, nombreArchivo, res, archivo) {
 
         // Si tenia un archivo asignado, borra el archvio anterior
         var pathViejo = `./uploads/${folder}/${registro.img}`;
-
-        if (fs.existsSync(pathViejo)) {
+        console.log(pathViejo);
+        if (fs.existsSync(pathViejo) && registro.img.length > 0) {
             fs.unlink(pathViejo, (err) => {
                 if (err) {
                     return res.status(500).send({
@@ -134,13 +134,16 @@ function subirPorTipo(tipo, id, nombreArchivo, res, archivo) {
                     errors: err
                 });
             }
-            // TODO clave solo tienen los usuarios 
-            registroActualizado.clave = ';-)';
+            // clave solo tienen los usuarios 
+            if (tipo === "usuario") {
+                registroActualizado.clave = ';-)';
+            }
             return res.status(200).send({
                 ok: true,
                 mensaje: `Imagen de ${nombre} actualizada`,
-                usuario: registroActualizado,
-                [tipo]: archivo.name
+                [nombre]: registroActualizado,
+                coleccion: [tipo],
+                archivo: archivo.name
             });
         })
 

@@ -11,16 +11,50 @@ var Medico = require('../models/medico');
 
 /* 
 
+    Obtener un medico
+
+*/
+app.get('/:id', (req, res, next) => {
+    var id = req.params.id;
+    Medico.findById(id)
+        .populate('usuario', 'nombre correo img')
+        .populate('hospital')
+        .exec((err, medico) => {
+            if (err) {
+                return res.status(500).send({
+                    ok: false,
+                    mensaje: 'Error al buscar el medico',
+                    errors: err
+                });
+            }
+            if (!medico) {
+                return res.status(400).send({
+                    ok: false,
+                    mensaje: 'El medico con el id ' + id + ', no existe.',
+                    errors: { message: "No existe un medico con dicho Id en la DB" }
+                });
+            }
+            return res.status(200).send({
+                ok: true,
+                medico: medico
+            });
+        })
+
+});
+/* 
+
     Obtener todos los medico
 
 */
 app.get('/', (req, res, next) => {
     var desde = req.query.desde || 0;
+    var cantidad = req.query.cantidad || 5;
+    cantidad = Number(cantidad);
     desde = Number(desde);
 
     Medico.find({}, 'nombre usuario img hospital')
         .skip(desde)
-        .limit(5)
+        .limit(cantidad)
         .populate('usuario', 'nombre correo role')
         .populate('hospital')
         .exec((err, medico) => {

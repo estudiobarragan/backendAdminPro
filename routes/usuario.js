@@ -15,11 +15,13 @@ var Usuario = require('../models/usuario');
 */
 app.get('/', (req, res, next) => {
     var desde = req.query.desde || 0;
+    var cantidad = req.query.cantidad || 5;
     desde = Number(desde);
+    cantidad = Number(cantidad);
 
     Usuario.find({}, 'nombre correo img role google')
         .skip(desde)
-        .limit(5)
+        .limit(cantidad)
         .exec((err, usuario) => {
             if (err) {
                 return res.status(500).send({
